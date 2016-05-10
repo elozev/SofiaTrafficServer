@@ -7,13 +7,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 
 public class ClientSide implements Runnable {
 
 	private Socket socket;
 	private String socketUsername;
-
+	
 	public ClientSide(Socket socket) {
 		this.socket = socket;
 		socketUsername = null;
@@ -49,15 +52,25 @@ public class ClientSide implements Runnable {
 					if (!ThreadPool.dataBase.containsValue(socket)) {
 						writer.println("ERROR_NOT_REGISTERED");
 					} else {
-						sendBroadcast(splittedInput[1]);
-						ThreadPool.stringBase += socketUsername + ": " + splittedInput[1] + "\n";  
+						//sendBroadcast(splittedInput[1]);
+						
+						if (splittedInput.length > 1) {
+							String toSend = "";
+							for (int i = 1; i < splittedInput.length; i++) {
+								toSend += splittedInput[i] + " ";
+							}
+							DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+							Date date = new Date();   // given date
+							
+							ThreadPool.stringBase += " " + dateFormat.format(date) + ": " + toSend + " #";
+						}
 						writer.println("OK BRDCAST");
 					}
-				} else if(splittedInput[0].equals("LIST")){
+				} else if (splittedInput[0].equals("LIST")) {
 					listOfUsers();
-				} else if(splittedInput[0].equals("MSG")){
+				} else if (splittedInput[0].equals("MSG")) {
 					sendMessage(splittedInput[1], splittedInput[2]);
-				} else if(splittedInput[0].equals("GET")){
+				} else if (splittedInput[0].equals("GET")) {
 					writer.println(ThreadPool.stringBase);
 				}
 			}
@@ -69,20 +82,19 @@ public class ClientSide implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	private void sendMessage(String user, String message) throws IOException{
+
+	private void sendMessage(String user, String message) throws IOException {
 		OutputStream output = ThreadPool.dataBase.get(user).getOutputStream();
 		PrintWriter writer = new PrintWriter(output, true);
-		
+
 		writer.println("MSG " + socketUsername + " " + message);
 	}
-	
-	private void listOfUsers() throws IOException{
+
+	private void listOfUsers() throws IOException {
 		OutputStream output = socket.getOutputStream();
 		PrintWriter writer = new PrintWriter(output, true);
 		String users = "";
-		for(Map.Entry<String, Socket> entry: ThreadPool.dataBase.entrySet()){
+		for (Map.Entry<String, Socket> entry : ThreadPool.dataBase.entrySet()) {
 			users += entry.getKey() + ", ";
 		}
 		writer.println("LIST " + users);

@@ -25,6 +25,7 @@ public class ThreadPool {
 			System.out.println("Socket connected to: " + socket.getLocalAddress().toString());
 			Runnable work = new ClientSide(socket);
 			executor.execute(work);
+			System.out.println("String base: " + stringBase);
 		}
 		
 	}
